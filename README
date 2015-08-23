@@ -1,0 +1,5 @@
+ledctl
+======
+
+A tiny software for controlling Leds on Linux. Originally made for my
+Banana Pi, so the featureset might not suit you.
