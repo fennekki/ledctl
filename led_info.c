@@ -30,7 +30,7 @@ void get_led_info(const char *const filename,
 		char *device_name_out, size_t device_name_out_size,
 		char *color_out, size_t color_out_size,
 		char *function_out, size_t function_out_size) {
-	char curr_file_name[255];
+	char curr_file_name[LED_INFO_FILENAME_SIZE];
 	char *first_tok, *second_tok, *third_tok;
 	char *device_name, *color, *function;
 
@@ -137,6 +137,8 @@ int build_led_index() {
 			/* Get pointer to current led */
 			led = led_index + led_count - 1;
 
+			strncpy(led->filename, curr_dirent->d_name,
+				sizeof(led->filename));
 			/* Just... look at this function. */
 			get_led_info(curr_dirent->d_name,
 				led->device_name, sizeof(led->device_name),

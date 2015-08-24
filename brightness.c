@@ -10,7 +10,7 @@ long read_max_brightness(size_t led_number) {
 	int err;
 	char *strtol_endptr;
 	struct led_info *led;
-	char filename[256];
+	char filename[LED_INFO_FILENAME_SIZE * 2];
 	/* More than the length of 2^64 */
 	char brightness_str[20];
 	long brightness;
@@ -21,8 +21,8 @@ long read_max_brightness(size_t led_number) {
 	led = led_index + led_number;
 
 	snprintf(filename, sizeof(filename),
-		LED_CLASS_PATH "%s:%s:%s/max_brightness",
-		led->device_name, led->color, led->function);
+		LED_CLASS_PATH "%s/max_brightness",
+		led->filename);
 
 	f = fopen(filename, "rb");
 
@@ -65,7 +65,7 @@ long read_max_brightness(size_t led_number) {
 int set_brightness(size_t led_number, long brightness) {
 	int err;
 	struct led_info *led;
-	char filename[256];
+	char filename[LED_INFO_FILENAME_SIZE * 2];
 	long max_brightness;
 	char brightness_str[20];
 	FILE *f;
@@ -86,8 +86,8 @@ int set_brightness(size_t led_number, long brightness) {
 		led = led_index + led_number;
 
 		snprintf(filename, sizeof(filename),
-			LED_CLASS_PATH "%s:%s:%s/brightness",
-			led->device_name, led->color, led->function);
+			LED_CLASS_PATH "%s/brightness",
+			led->filename);
 
 		f = fopen(filename, "wb");
 

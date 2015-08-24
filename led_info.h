@@ -6,12 +6,14 @@
 #define LED_CLASS_PATH "/sys/class/leds/"
 
 #define LED_INFO_FIELD_SIZE 64
+#define LED_INFO_FILENAME_SIZE 255
 #define INITIAL_LED_INDEX_SIZE 8
 
 struct led_info {
 	char device_name[LED_INFO_FIELD_SIZE];
 	char color[LED_INFO_FIELD_SIZE];
 	char function[LED_INFO_FIELD_SIZE];
+	char filename[LED_INFO_FILENAME_SIZE];
 };
 
 extern struct led_info *led_index;
