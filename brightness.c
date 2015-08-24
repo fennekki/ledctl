@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -55,9 +56,9 @@ long read_max_brightness(size_t led_number) {
 			program_name);
 		err = -2;
 	}
-	
+
 	close(fd);
-	
+
 	if (err != 0) {
 		return err;
 	}
@@ -105,7 +106,8 @@ int set_brightness(size_t led_number, long brightness) {
 		snprintf(brightness_str, sizeof(brightness_str), "%ld",
 			brightness);
 
-		if (write(fd, brightness_str, sizeof(brightness_str)) < 0) {
+                /* Used to use sizeof here --> extra data. DURRRR */
+                if (write(fd, brightness_str, strlen(brightness_str)) < 0) {
 			fprintf(stderr, "%s: Could not write brightness\n",
 				program_name);
 			err = -2;

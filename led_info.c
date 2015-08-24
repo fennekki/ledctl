@@ -109,7 +109,7 @@ int build_led_index() {
 		fprintf(stderr, "%s: Could not find any LEDs\n", program_name);
 		return -1;
 	}
-	
+
 	while ((curr_dirent = readdir(led_class)) > 0) {
 		/* Ignore ., .., "hidden files" */
 		if (curr_dirent->d_name[0] != '.') {
@@ -129,7 +129,7 @@ int build_led_index() {
 				/* Copy old data over */
 				memcpy(led_index, old_led_index,
 					old_led_index_size * sizeof(struct led_info));
-				
+
 				/* Free old data */
 				free(old_led_index);
 			}

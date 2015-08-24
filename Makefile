@@ -2,7 +2,7 @@ all: ledctl
 
 CFLAGS=-O2 -s
 
-ledctl: ledctl.o led_info.o brightness.o 
+ledctl: ledctl.o led_info.o brightness.o
 	$(CC) $(CFLAGS) -o $@ ledctl.o brightness.o led_info.o $(LDFLAGS)
 
 ledctl.o: ledctl.c ledctl.h led_info.h brightness.h

@@ -72,7 +72,7 @@ void usage() {
  */
 int substring_search_match(const char *haystack, const char *needle) {
 	char *strstr_result;
-	
+
 	/* Check if we found a substring at all */
 	if ((strstr_result = strstr(haystack, needle))!= NULL) {
 		/* Check whether it starts at the beginning */
