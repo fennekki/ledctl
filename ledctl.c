@@ -1,142 +1,156 @@
+#include "ledctl.h"
+
+#include "led_info.h"
+#include "brightness.h"
+
+#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 
-#include <sys/types.h>
-#include <dirent.h>
 
-static const char* led_class_path = "/sys/class/leds/";
-static char *program_name;
-static char error_string[255];
+/* For usage, errors */
+char *program_name;
 
-/* Macro'd for convenience */
-#define PRINT_ERROR(filename_or_whatever) do {\
-	snprintf(error_string, sizeof(error_string), "%s: %s",\
-		program_name, filename_or_whatever);\
-	perror(error_string);\
-} while(0)
 
-/* For get_led_info */
-#define COPY_VALUE_CHECKED(value, value_out, value_out_size) do {\
-	if (value_out != NULL && value_out_size > 0) {\
-		if (value != NULL) {\
-			strncpy(value_out, value, value_out_size);\
-		}\
-		else {\
-			/* Equals copying an empty string! */\
-			value_out[0] = '\0';\
-		}\
-	}\
-} while(0)
+int handle_set_brightness(char *led_str, char *brightness_str) {
+	int err;
+	char *strtol_endptr;
+	long led_number;
+	long brightness;
 
-/* What a monster of a function */
-void get_led_info(const char *const filename,
-		char *device_name_out, size_t device_name_out_size,
-		char *color_out, size_t color_out_size,
-		char *function_out, size_t function_out_size) {
-	char curr_file_name[255];
-	char *first_tok, *second_tok, *third_tok;
-	char *device_name, *color, *function;
+	errno = 0;
+	led_number = strtol(led_str, &strtol_endptr, 10);
 
-	/* Copy filename for strtoking */
-	strncpy(curr_file_name, filename, sizeof(curr_file_name));
-
-	/* This needs a hack */
-	first_tok = strtok(curr_file_name, ":");
-	second_tok = strtok(NULL, ":");
-	third_tok = strtok(NULL, ":");
-
-	/*
-	 * Here's the hack. It's ugly. At least we can
-	 * assume that we skipped no more than two tokens.
-	 */
-
-	/* Did we skip any columns? */
-	if (first_tok != curr_file_name) {
-		/* Did we skip two? */
-		if (first_tok > curr_file_name + 1) {
-			device_name = NULL;
-			color = NULL;
-			function = first_tok;
-		}
-		/* We skipped one */
-		else {
-			device_name = NULL;
-			color = first_tok;
-			function = second_tok;
-		}
+	if (errno != 0) {
+		fprintf(stderr, "%s: Invalid argument\n",
+			program_name);
+		return -1;
 	}
-	/* Did we skip the SECOND column? */
-	else if (second_tok > curr_file_name + strlen(first_tok) + 1) {
-		device_name = first_tok;
-		color = NULL;
-		function = second_tok;
-	}
-	else {
-		device_name = first_tok;
-		color = second_tok;
-		function = third_tok;
+	else if (*strtol_endptr != '\0') {
+		fprintf(stderr,"%s: Led number must be an integer\n",
+			program_name);
+		return -1;
 	}
 
-	/*
-	 * Output.
-	 *
-	 * Every single one checks:
-	 * - Whether output is NULL -> Not copied
-	 * - Whether output size is under 1 -> Not copied
-	 * - Whether the value is NULL -> Copy ""
-	 * And finally just strcopies it. Note that the copied string
-	 * might not contain the entire name!!
-	 *
-	 * I wrote a macro for this because it's easier that way.
-	 */
+	errno = 0;
+	brightness = strtol(brightness_str, &strtol_endptr, 10);
 
-	COPY_VALUE_CHECKED(device_name, device_name_out, device_name_out_size);
-	COPY_VALUE_CHECKED(color, color_out, color_out_size);
-	COPY_VALUE_CHECKED(function, function_out, function_out_size);
+	if (errno != 0) {
+		fprintf(stderr, "%s: Invalid argument\n",
+			program_name);
+		return -1;
+	}
+	else if (*strtol_endptr != '\0') {
+		fprintf(stderr,"%s: Brightness must be an integer\n",
+			program_name);
+		return -1;
+	}
+
+	/* Shift error codes */
+	if ((err = set_brightness(led_number, brightness)) < 0) {
+		return err;
+	}
+
+	return 1;
+
 }
 
-void enumerate_leds() {
-	DIR *led_class;
-	struct dirent *curr_dirent;
-	char led_devicename[64], led_color[64], led_function[64];
 
-	led_class = opendir(led_class_path);
+void usage() {
+	fprintf(stderr, "usage: %s command [argument...]\n\n"
+		"Extraneous arguments are ignored.\n"
+		"Valid commands: enumerate\n"
+		"                set <led> <brightness>",
+		program_name);
+}
 
-	/* Could error if there are no leds, I suppose */
-	if (led_class == NULL) {
-		PRINT_ERROR(led_class_path);
-		return;
-	}
+
+/*
+ * NOTE: You can just use strstr(...) == haystack for non-literal
+ * haystack!
+ */
+int substring_search_match(const char *haystack, const char *needle) {
+	char *strstr_result;
 	
-	while ((curr_dirent = readdir(led_class)) > 0) {
-		/* Ignore ., .., "hidden files" */
-		if (curr_dirent->d_name[0] != '.') {
-			/* Just... look at this function. */
-			get_led_info(curr_dirent->d_name,
-				led_devicename, sizeof(led_devicename),
-				led_color, sizeof(led_color),
-				led_function, sizeof(led_function));
-
-			fprintf(stdout, "Name: %s\tColor: %s \tFunction:%s\n",
-				led_devicename, led_color, led_function);
+	/* Check if we found a substring at all */
+	if ((strstr_result = strstr(haystack, needle))!= NULL) {
+		/* Check whether it starts at the beginning */
+		if (strcmp(strstr_result, haystack) == 0) {
+			return 1;
 		}
 	}
-
-	/* Handle error? */
-	if (curr_dirent < 0) {
-		perror(program_name);
-	}
-
-	closedir(led_class);
+	return 0;
 }
+
+#define NO_ERROR 0
+#define INVALID_COMMAND_ERROR 1
+#define ARGUMENT_ERROR 2
+#define IO_FAILURE_ERROR 3
+#define LED_INDEX_ERROR 10
+#define UNKNOWN_ERROR 127
+
+#define WRONG_PARAMETER_COUNT(cmd, count) fprintf(stderr, "%s: Command " cmd\
+	" requires %u parameters\n", program_name, count)
 
 int main(int argc, char *argv[])
 {
+	int err, command_err;
+
 	/* What a neat hack, eh */
 	program_name = argv[0];
 
-	enumerate_leds();
+	err = 0;
+	if (argc > 1) {
+		/* Start by creating the indices */
+		if (build_led_index() < 0) {
+			return LED_INDEX_ERROR;
+		}
 
-	return 0;
+		/*
+		 * Incredible hack:
+		 * If a substring is found, see if its start location
+		 * matches the start location matches the start of the
+		 * string "enumerate"
+		 */
+		if (substring_search_match("enumerate", argv[1]) != 0) {
+			enumerate_leds();
+		}
+		else if (substring_search_match("set", argv[1]) != 0) {
+			if (argc > 3) {
+				if ((command_err = handle_set_brightness(
+						argv[2], argv[3])) < 0) {
+					switch (command_err) {
+						/* Argument error */
+						case -1:
+							err = ARGUMENT_ERROR;
+							break;
+						/* Couldn't set value */
+						case -2:
+							err = IO_FAILURE_ERROR;
+							break;
+						default:
+							err = UNKNOWN_ERROR;
+					}
+				}
+			}
+			else {
+				WRONG_PARAMETER_COUNT("set", 2);
+				err = ARGUMENT_ERROR;
+			}
+		}
+		else {
+			usage();
+			err = INVALID_COMMAND_ERROR;
+		}
+
+		/* Free the led index */
+		destroy_led_index();
+	}
+	else {
+		usage();
+		err = INVALID_COMMAND_ERROR;
+	}
+
+	return err;
 }

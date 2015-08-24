@@ -3,3 +3,5 @@ ledctl
 
 A tiny software for controlling Leds on Linux. Originally made for my
 Banana Pi, so the featureset might not suit you.
+
+In C90, because apparently that's still the default.
