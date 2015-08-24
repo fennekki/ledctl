@@ -1,7 +1,6 @@
 all: ledctl
 
 CFLAGS=-O2 -s
-MAKEDEPEND = gcc -M $(CPPFLAGS) -o $*.d $<
 
 ledctl: ledctl.o led_info.o brightness.o 
 	$(CC) $(CFLAGS) -o $@ ledctl.o brightness.o led_info.o $(LDFLAGS)
