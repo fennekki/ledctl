@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 long read_max_brightness(size_t led_number) {
 	int err;
 	char *strtol_endptr;
@@ -14,7 +19,7 @@ long read_max_brightness(size_t led_number) {
 	/* More than the length of 2^64 */
 	char brightness_str[20];
 	long brightness;
-	FILE *f;
+	int fd;
 
 	err = 0;
 
@@ -24,16 +29,15 @@ long read_max_brightness(size_t led_number) {
 		LED_CLASS_PATH "%s/max_brightness",
 		led->filename);
 
-	f = fopen(filename, "rb");
+	fd = open(filename, O_RDONLY);
 
-	if (f == NULL) {
+	if (fd < 0) {
 		fprintf(stderr, "%s: Could not open max brightness file\n",
 			program_name);
 		return -2;
 	}
 
-	if (fread(brightness_str, 1, sizeof(brightness_str), f) > 0
-			&& !ferror(f)) {
+	if (read(fd, brightness_str, sizeof(brightness_str)) > 0) {
 		errno = 0;
 		brightness = strtol(brightness_str, &strtol_endptr, 10);
 
@@ -52,7 +56,7 @@ long read_max_brightness(size_t led_number) {
 		err = -2;
 	}
 	
-	fclose(f);
+	close(fd);
 	
 	if (err != 0) {
 		return err;
@@ -68,7 +72,7 @@ int set_brightness(size_t led_number, long brightness) {
 	char filename[LED_INFO_FILENAME_SIZE * 2];
 	long max_brightness;
 	char brightness_str[20];
-	FILE *f;
+	int fd;
 
 	err = 0;
 	if ((max_brightness = read_max_brightness(led_number)) < 0) {
@@ -89,9 +93,10 @@ int set_brightness(size_t led_number, long brightness) {
 			LED_CLASS_PATH "%s/brightness",
 			led->filename);
 
-		f = fopen(filename, "wb");
+		fd = open(filename, O_WRONLY);
 
-		if (f == NULL) {
+		/* In case we didn't get a file descriptor */
+		if (fd < 0) {
 			fprintf(stderr, "%s: Could not open brightness file\n",
 				program_name);
 			return -1;
@@ -100,14 +105,13 @@ int set_brightness(size_t led_number, long brightness) {
 		snprintf(brightness_str, sizeof(brightness_str), "%ld",
 			brightness);
 
-		if (fwrite(brightness_str, 1, sizeof(brightness_str), f) == 0
-				|| ferror(f)) {
+		if (write(fd, brightness_str, sizeof(brightness_str)) < 0) {
 			fprintf(stderr, "%s: Could not write brightness\n",
 				program_name);
 			err = -2;
 		}
 
-		fclose(f);
+		close(fd);
 	}
 
 	return err;
