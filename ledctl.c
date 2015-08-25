@@ -61,7 +61,7 @@ void usage() {
 	fprintf(stderr, "usage: %s command [argument...]\n\n"
 		"Extraneous arguments are ignored.\n"
 		"Valid commands: enumerate\n"
-		"                set <led> <brightness>",
+		"                brightness <led> [<brightness>]",
 		program_name);
 }
 
@@ -90,9 +90,6 @@ int substring_search_match(const char *haystack, const char *needle) {
 #define LED_INDEX_ERROR 10
 #define UNKNOWN_ERROR 127
 
-#define WRONG_PARAMETER_COUNT(cmd, count) fprintf(stderr, "%s: Command " cmd\
-	" requires %u parameters\n", program_name, count)
-
 int main(int argc, char *argv[])
 {
 	int err, command_err;
@@ -116,7 +113,7 @@ int main(int argc, char *argv[])
 		if (substring_search_match("enumerate", argv[1]) != 0) {
 			enumerate_leds();
 		}
-		else if (substring_search_match("set", argv[1]) != 0) {
+		else if (substring_search_match("brightness", argv[1]) != 0) {
 			if (argc > 3) {
 				if ((command_err = handle_set_brightness(
 						argv[2], argv[3])) < 0) {
@@ -134,8 +131,14 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+			else if (argc > 2) {
+				if ((command_err =
+					handle_get_brightness()) < 0) {
+					
+				}
 			else {
-				WRONG_PARAMETER_COUNT("set", 2);
+				fprintf(stderr, "%s: Too few parameters\n",
+					program_name);
 				err = ARGUMENT_ERROR;
 			}
 		}
