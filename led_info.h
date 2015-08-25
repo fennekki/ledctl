@@ -10,24 +10,22 @@
 #define INITIAL_LED_INDEX_SIZE 8
 
 struct led_info {
-	char device_name[LED_INFO_FIELD_SIZE];
-	char color[LED_INFO_FIELD_SIZE];
-	char function[LED_INFO_FIELD_SIZE];
-	char filename[LED_INFO_FILENAME_SIZE];
+    char device_name[LED_INFO_FIELD_SIZE];
+    char color[LED_INFO_FIELD_SIZE];
+    char function[LED_INFO_FIELD_SIZE];
+    char filename[LED_INFO_FILENAME_SIZE];
 };
 
-extern struct led_info *led_index;
-extern size_t led_index_size;
-extern size_t led_count;
-
 void get_led_info(const char *const filename,
-	char *device_name_out, size_t device_name_out_size,
-	char *color_out, size_t color_out_size,
-	char *function_out, size_t function_out_size);
+    char *device_name_out, size_t device_name_out_size,
+    char *color_out, size_t color_out_size,
+    char *function_out, size_t function_out_size);
 
 int build_led_index();
 void destroy_led_index();
 
 void enumerate_leds();
+
+struct led_info *get_led(size_t led_number);
 
 #endif
