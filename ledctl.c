@@ -2,6 +2,7 @@
 
 #include "led_info.h"
 #include "brightness.h"
+#include "trigger.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -84,11 +85,74 @@ int handle_get_brightness(char *led_str) {
 }
 
 
+int handle_set_trigger(char *led_str, char *trigger) {
+    int err;
+    char *strtol_endptr;
+    long led_number;
+
+    /* 
+     * The process: Set errno to 0. Convert parameter to number. If
+     * errno changed, we have an error and should return. If the value
+     * strtol_endptr points to does not equal the zero byte, the
+     * parameter had trailing characters after a valid number.
+     */
+    errno = 0;
+    led_number = strtol(led_str, &strtol_endptr, 10);
+
+    if (errno != 0) {
+        fprintf(stderr, "%s: Invalid argument\n", program_name);
+        return -ARGUMENT_ERROR;
+    }
+    else if (*strtol_endptr != '\0') {
+        fprintf(stderr,"%s: Led number must be an integer\n", program_name);
+        return -ARGUMENT_ERROR;
+    }
+
+    if ((err = set_trigger(led_number, trigger)) < 0) {
+        return err;
+    }
+
+    return 1;
+
+}
+
+int handle_get_trigger(char *led_str) {
+    int ret;
+    char *strtol_endptr;
+    long led_number;
+    char trigger[TRIGGER_BUF_SIZE];
+
+    errno = 0;
+    led_number = strtol(led_str, &strtol_endptr, 10);
+
+    if (errno != 0) {
+        fprintf(stderr, "%s: Invalid argument\n", program_name);
+        return -ARGUMENT_ERROR;
+    }
+    else if (*strtol_endptr != '\0') {
+        fprintf(stderr,"%s: Led number must be an integer\n", program_name);
+        return -ARGUMENT_ERROR;
+    }
+
+    /* Initialise */
+    memset(trigger, '\0', sizeof(trigger));
+
+    if ((ret = get_trigger(led_number, trigger, sizeof(trigger))) < 0) {
+        return ret;
+    }
+
+    fprintf(stdout, "%s\n", trigger);
+
+    return 1;
+}
+
+
 void usage() {
     fprintf(stderr, "usage: %s command [argument...]\n\n"
         "Extraneous arguments are ignored.\n"
         "Valid commands: enumerate\n"
-        "                brightness <led> [<brightness>]",
+        "                brightness <led> [<brightness>]\n"
+        "                trigger <led> [<trigger>]\n",
         program_name);
 }
 
@@ -141,6 +205,22 @@ int main(int argc, char *argv[])
             }
             else if (argc == 3) {
                 if ((command_err = handle_get_brightness(argv[2])) < 0) {
+                    err = -command_err;
+                }
+            }
+            else {
+                fprintf(stderr, "%s: Too few parameters\n", program_name);
+                err = ARGUMENT_ERROR;
+            }
+        }
+        else if (substring_search_match("trigger", argv[1]) != 0) {
+            if (argc > 3) {
+                if ((command_err = handle_set_trigger(argv[2], argv[3])) < 0) {
+                    err = -command_err;
+                }
+            }
+            else if (argc == 3) {
+                if ((command_err = handle_get_trigger(argv[2])) < 0) {
                     err = -command_err;
                 }
             }

@@ -53,8 +53,8 @@ int read_device_file(size_t led_number, const char *device_file, char *buf,
 
 }
 
-int write_device_file(size_t led_number, const char *device_file, char *buf,
-                      size_t buf_size) {
+int write_device_file(size_t led_number, const char *device_file,
+                      const char *buf, size_t buf_size) {
     int err;
     struct led_info *led;
     char filename[LED_INFO_FILENAME_SIZE * 2];
@@ -102,7 +102,7 @@ long read_device_file_long(size_t led_number, const char *device_file) {
     int err;
     char *strtol_endptr;
     /* More than the length of 2^64 */
-    char ret_str[20];
+    char ret_str[22];
     long ret;
 
     /* Initialise memory block */
@@ -134,7 +134,7 @@ long read_device_file_long(size_t led_number, const char *device_file) {
 int write_device_file_long(size_t led_number, const char* device_file,
                            long value) {
     int err;
-    char value_str[20];
+    char value_str[22];
 
     snprintf(value_str, sizeof(value_str), "%ld", value);
     if ((err = write_device_file(led_number, device_file, value_str,
