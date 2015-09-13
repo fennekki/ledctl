@@ -103,6 +103,12 @@ int build_led_index() {
     led_index_size = INITIAL_LED_INDEX_SIZE;
     led_count = 0;
 
+    /* If calloc returned NULL */
+    if (led_index == NULL) {
+        fprintf(stderr, "%s: Could not allocate LED index\n", program_name);
+        return -LED_INDEX_ERROR;
+    }
+
     /* Could error if there are no leds, I suppose */
     if (led_class == NULL) {
         fprintf(stderr, "%s: Could not find any LEDs\n", program_name);
@@ -123,6 +129,18 @@ int build_led_index() {
                 /* If we can't, double the size of the index */
                 led_index_size = old_led_index_size * 2;
                 led_index = calloc(led_index_size, sizeof(struct led_info));
+
+                /* Check if we failed to realloc the buffer */
+                if (led_index == NULL) {
+                    fprintf(stderr, "%s: Could not reallocate LED index\n",
+                            program_name);
+
+                    /* Still need to free the old index */
+                    free(old_led_index);
+
+                    /* Then we can return with an error */
+                    return -LED_INDEX_ERROR;
+                }
 
                 /* Copy old data over */
                 memcpy(led_index, old_led_index,
