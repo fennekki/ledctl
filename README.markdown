@@ -12,18 +12,18 @@ Using ledctl is entirely equivalent to using a shell to
 Usage
 -----
 
-usage: ledctl command [argument...]
+    usage: ledctl command [argument...]
 
-Extraneous arguments are ignored.
-Valid commands: enumerate
-                brightness <led> [<brightness>]
-                trigger <led> [<trigger>]
+    Extraneous arguments are ignored.
+    Valid commands: enumerate
+                    brightness <led> [<brightness>]
+                    trigger <led> [<trigger>]
 
 NOTE: You may use any unambiguous abbreviation of a command name instead
 of the full name. Currently, all commands start with a different letter
 so you may use the first letter of a command.
 
-Example: ./ledctl e
+Example: `./ledctl e`
 
 ### enumerate ###
 
