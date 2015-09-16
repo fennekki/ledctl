@@ -106,7 +106,7 @@ int build_led_index() {
     /* If calloc returned NULL */
     if (led_index == NULL) {
         fprintf(stderr, "%s: Could not allocate LED index\n", program_name);
-        return -LED_INDEX_ERROR;
+        return -MEMORY_ALLOCATION_ERROR;
     }
 
     /* Could error if there are no leds, I suppose */
@@ -139,7 +139,7 @@ int build_led_index() {
                     free(old_led_index);
 
                     /* Then we can return with an error */
-                    return -LED_INDEX_ERROR;
+                    return -MEMORY_ALLOCATION_ERROR;
                 }
 
                 /* Copy old data over */
@@ -187,7 +187,7 @@ void enumerate_leds() {
             "%lu\tDevice name: %s\tColor: %s\tFunction: %s\n",
             i, led->device_name, led->color, led->function);
     }
-};
+}
 
 struct led_info *get_led(size_t led_number) {
     if (led_number < led_count) {

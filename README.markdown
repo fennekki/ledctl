@@ -9,6 +9,64 @@ In C90, because apparently that's still the default.
 Using ledctl is entirely equivalent to using a shell to
 `echo`/`cat`/`dd` some data around.
 
+Usage
+-----
+
+usage: ledctl command [argument...]
+
+Extraneous arguments are ignored.
+Valid commands: enumerate
+                brightness <led> [<brightness>]
+                trigger <led> [<trigger>]
+
+NOTE: You may use any unambiguous abbreviation of a command name instead
+of the full name. Currently, all commands start with a different letter
+so you may use the first letter of a command.
+
+Example: ./ledctl e
+
+### enumerate ###
+
+Command takes no arguments.
+
+Lists the led numbers you'll use with other commands, along with
+information about each led.
+
+Errors:
+
+- If no leds are found
+
+### brightness ###
+
+Arguments:
+
+- led: led number
+- brightness: (optional) new brightness to be set
+
+Without the brightness argument, shows current brightness.
+With the brightness argument, sets new brightness.
+
+Errors:
+
+- If led brightness cannot be read
+- If maximum brightness cannot be read
+- If led brightness cannot be written
+
+### trigger ###
+
+Arguments:
+
+- led: led number
+- trigger: (optional) new trigger to be set
+
+Without the trigger argument, shows current trigger.
+With the trigger argument, sets new trigger.
+
+Errors:
+
+- If trigger cannot be read
+- If trigger cannot be written
+
 Notes on unprivileged users
 ---------------------------
 
