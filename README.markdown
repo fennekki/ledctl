@@ -104,7 +104,7 @@ the led drivers you're using*, as well as correct filesystem privileges
 for not only `/sys/class/leds/*` but also the `ledctl` binary itself. If
 any non-privileged user is able to edit it, they can write to *arbitrary
 files*. Without a suid bit, this isn't a problem - they cannot write to
-files they don't own and `ledctl` will present an eror message. With the
+files they don't own and `ledctl` will present an error message. With the
 suid bit, however, an *unprivileged* attacker can *truncate arbitrary
 files* and insert semi-arbitrary digits into them. The digits written
 might be able to facilitate an attack of some kind, as well.
